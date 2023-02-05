@@ -31,7 +31,13 @@ task(
 
         //send transaction to call addObject() method
         const object = await trantor.objects(cidHex);
+        console.log('Got object data')
         console.log(object)
+        const providers = await trantor.getActiveProviders(cidHex);
+        console.log(providers)
+        const dealsList = await trantor.getObjectDealsList(cidHex);
+        console.log('Got object deals')
+        console.log(dealsList)
         console.log(object.deals)
         console.log("Complete!")
     })

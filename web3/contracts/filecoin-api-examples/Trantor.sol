@@ -52,6 +52,9 @@ contract Trantor {
         replicasNumber = newReplicasNumber;
     }
 
+    function getObjectDealsList(bytes calldata ipfsCid) public view returns(uint64[] memory deals){
+        return objects[ipfsCid].dealsList;
+    }
 
     function addObject(bytes calldata ipfsCid, uint64 filesize, bool isCar, string calldata originalUrl, string calldata filename) public onlyByOwner() {
         Object memory object = Object({dealsList:new uint64[](0), filesize: filesize, originalUrl: originalUrl, filename: filename, isCar: isCar});
@@ -77,8 +80,8 @@ contract Trantor {
 
         Object memory object = objects[commitmentRet.data];
 
-        require(commitmentRet.size == object.filesize, 'Object filesize and deal filesize are not same');
-        require(deals[dealId].providerId!=0, 'Deal already verified');
+//        require(commitmentRet.size == object.filesize, 'Object filesize and deal filesize are not same');
+//        require(deals[dealId].providerId!=0, 'Deal already verified');
         MarketTypes.GetDealTermReturn memory dealTerm = MarketAPI.getDealTerm(dealId);
         uint64 dealProviderActorId = MarketAPI.getDealProvider(dealId).provider;
 
