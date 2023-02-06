@@ -19,7 +19,6 @@ contract Trantor {
         string originalUrl;
         string filename;
         bool isCar;
-
     }
 
     address public owner;
@@ -52,14 +51,19 @@ contract Trantor {
         replicasNumber = newReplicasNumber;
     }
 
-    function getObjectDealsList(bytes calldata ipfsCid) public view returns(uint64[] memory deals){
+    function getObjectDealsList(bytes calldata ipfsCid) public view returns (uint64[] memory deals){
         return objects[ipfsCid].dealsList;
     }
 
     function addObject(bytes calldata ipfsCid, uint64 filesize, bool isCar, string calldata originalUrl, string calldata filename) public onlyByOwner() {
-        Object memory object = Object({dealsList:new uint64[](0), filesize: filesize, originalUrl: originalUrl, filename: filename, isCar: isCar});
+        if (objects[ipfsCid].filesize > 0) {
+            return;
+        }
+        Object memory object = Object({dealsList : new uint64[](0), filesize : filesize, originalUrl : originalUrl, filename : filename, isCar : isCar});
+
         objects[ipfsCid] = object;
         objectsList.push(ipfsCid);
+
 
     }
 
@@ -77,13 +81,17 @@ contract Trantor {
 
     function verifyDeal(uint64 dealId) public {
         MarketTypes.GetDealDataCommitmentReturn memory commitmentRet = MarketAPI.getDealDataCommitment(dealId);
-
-        Object memory object = objects[commitmentRet.data];
-
-//        require(commitmentRet.size == object.filesize, 'Object filesize and deal filesize are not same');
-//        require(deals[dealId].providerId!=0, 'Deal already verified');
+        uint64[] memory activeProviders = getActiveProviders(commitmentRet.data);
+        if (activeProviders.length >= replicasNumber) {
+            return;
+        }
         MarketTypes.GetDealTermReturn memory dealTerm = MarketAPI.getDealTerm(dealId);
         uint64 dealProviderActorId = MarketAPI.getDealProvider(dealId).provider;
+        for (uint i = 0; i < activeProviders.length; i++) {
+            if (dealProviderActorId == activeProviders[i]) {
+                return;
+            }
+        }
 
         deals[dealId] = Deal(dealTerm, dealProviderActorId);
         objects[commitmentRet.data].dealsList.push(dealId);
