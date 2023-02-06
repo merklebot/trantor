@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "devDependencies": {
+    "nuxt": "^3.1.2"
+  },
+  "dependencies": {
+    "@pinia/nuxt": "^0.4.6",
+    "autoprefixer": "^10.4.13",
+    "cids": "^1.1.9",
+    "ethers": "^6.0.2",
+    "pinia": "^2.0.30",
+    "postcss": "^8.4.21",
+    "tailwindcss": "^3.2.4",
+    "web3": "^1.8.2"
+  }
+}
