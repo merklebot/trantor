@@ -22,7 +22,7 @@ task(
         // transaction = await filecoinMarketConsumer.storeAll(dealID)
         // const receipt = await transaction.wait()
 
-        let data = await filecoinMarketConsumer.dealCommitment();
+        let data = await filecoinMarketConsumer.dealPricePerEpoch();
         console.log(data)
         console.log("Complete!")
     })

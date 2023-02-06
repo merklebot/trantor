@@ -54,7 +54,7 @@
       </table>
     </div>
 
-    <div class="mt-16">
+    <div v-if="userAddress.value===ownerAddress.value" class="mt-16">
       <h2 class="text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400">Add object</h2>
 
       <div>
@@ -82,9 +82,33 @@
               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               required v-model="newFilename">
         </div>
+        <div class="flex items-start mb-6">
+          <div class="flex items-center h-5">
+            <input id="iscar" type="checkbox" v-model="newIsCar"
+                   class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800"
+                   required>
+          </div>
+          <label for="iscar" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Is Car?</label>
+        </div>
         <button type="submit" v-on:click="()=>addObject()"
                 class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
           Add object
+        </button>
+      </div>
+    </div>
+    <div class="mt-16">
+      <h2 class="text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400">Verify Deal</h2>
+
+      <div>
+        <div class="mb-6">
+          <label class="block mb-2 text-md font-medium text-gray-900 dark:text-white">DEAL ID</label>
+          <input
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              required v-model="dealId">
+        </div>
+        <button type="submit" v-on:click="()=>verifyDeal()"
+                class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+          Verify deal
         </button>
       </div>
 
@@ -103,8 +127,13 @@ import Web3 from 'web3'
 import {CONTRACT_JSON} from '../../config'
 
 const instance = ref(null)
-const userAddress = ref(null)
+const userAddress = ref('00')
+const ownerAddress = ref('0')
 const bucketBalance = ref(0)
+
+const replicasNumber = ref(0)
+const tip = ref(0)
+
 
 const bucketAddress = ref()
 const objects = ref([])
@@ -116,6 +145,9 @@ const newFilesize = ref()
 const newIsCar = ref(false)
 const newOriginalUrl = ref()
 const newFilename = ref()
+
+
+const dealId = ref(0)
 
 const initWeb3 = async () => {
   if (typeof window.ethereum !== 'undefined') {
@@ -151,9 +183,14 @@ const initWeb3 = async () => {
 const fetchData = async () => {
   let contract = new instance.value.eth.Contract(CONTRACT_JSON, bucketAddress.value)
   const balance = await instance.value.eth.getBalance(bucketAddress.value)
+  const owner = await contract.methods.owner().call({from: userAddress.value})
+  const tipPGib = await contract.methods.tip().call({from: userAddress.value})
+  const replicas = await contract.methods.replicasNumber.call({from: userAddress.value})
+  ownerAddress.value = owner
   bucketBalance.value = balance
   let objectsParsed = false
   let objectI = 0
+  objects.value = []
   while (!objectsParsed) {
     try {
       const cidHex = await contract.methods.objectsList(objectI).call({from: userAddress.value})
@@ -187,6 +224,14 @@ const topUpBucketBalance = async () => {
     value: 1000000000000000000
   })
   await fetchData()
+}
+
+const verifyDeal = async () => {
+  console.log('Verify deal', dealId.value)
+  let contract = new instance.value.eth.Contract(CONTRACT_JSON, bucketAddress.value)
+  await contract.methods.verifyDeal(dealId.value).send({from: userAddress.value})
+  await fetchData()
+
 }
 
 const addObject = async () => {
