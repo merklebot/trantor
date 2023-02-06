@@ -14,6 +14,11 @@
 
       </p>
 
+      <p class="text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400">Tip amount:
+        {{ tip / 1000000000000000000 }} FIL / GiB
+
+      </p>
+
     </div>
     <div class="relative overflow-x-auto pt-16">
       <h2 class="text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400">Objects:</h2>
@@ -184,8 +189,11 @@ const fetchData = async () => {
   let contract = new instance.value.eth.Contract(CONTRACT_JSON, bucketAddress.value)
   const balance = await instance.value.eth.getBalance(bucketAddress.value)
   const owner = await contract.methods.owner().call({from: userAddress.value})
-  const tipPGib = await contract.methods.tip().call({from: userAddress.value})
+  const tipPerGib = await contract.methods.tip().call({from: userAddress.value})
+  tip.value = tipPerGib
+
   const replicas = await contract.methods.replicasNumber.call({from: userAddress.value})
+  replicasNumber.value = replicas
   ownerAddress.value = owner
   bucketBalance.value = balance
   let objectsParsed = false
